@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>現場ノート 設置手順</title>
+<style>
+:root{--bg:#f3f1ec;--surface:#fff;--line:#d8d2c5;--fg:#1f1a14;--muted:#6b6256;--tare:#5a3218;--accent:#3d5a1f;--ok:#2f6b3a;--ok-soft:#dcefdc}
+@media (prefers-color-scheme:dark){:root{--bg:#141210;--surface:#1e1b17;--line:#3a342c;--fg:#efe9df;--muted:#a99f91;--tare:#e0ac82;--accent:#a3c770;--ok:#8fd19a;--ok-soft:#1d3220;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px 48px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{margin:8px 0 0;font-size:24px;color:var(--tare)}
+ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:12px}
+li b{color:var(--tare)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;background:var(--accent);color:#fff;min-height:56px;font-size:17px;cursor:pointer}
+@media (prefers-color-scheme:dark){button{color:#14180f}}
+.done{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:10px 12px;font-weight:700}
+.muted{color:var(--muted);font-size:14px}
+code{background:var(--line);border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Google側の設置手順</h1>
+  <p class="muted">社長が1回だけ行います。iPhoneのSafariでOKです。所要時間は10分ほどです。</p>
+
+  <div class="card">
+    <b>① プログラムをコピー</b>
+    <button id="copy">プログラムを全部コピーする</button>
+    <div id="msg" class="done" hidden>コピーしました</div>
+    <p class="muted">うまくいかない時は、もう一度押してください。</p>
+  </div>
+
+  <div class="card">
+    <b>② Apps Scriptに貼り付け</b>
+    <ol>
+      <li>Safariで <b>script.google.com</b> を開き、Googleにログイン</li>
+      <li>アドレスバー左の「ぁあ」→ <b>デスクトップ用Webサイトを表示</b></li>
+      <li>左上の <b>新しいプロジェクト</b></li>
+      <li>最初から書いてある文字を全部消して、①でコピーしたものを貼り付け</li>
+      <li>上のフロッピーのマーク（保存）を押す</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <b>③ ウェブアプリとして公開</b>
+    <ol>
+      <li>右上の <b>デプロイ</b> → <b>新しいデプロイ</b></li>
+      <li>歯車マーク → <b>ウェブアプリ</b> を選ぶ</li>
+      <li>次のユーザーとして実行：<b>自分</b></li>
+      <li>アクセスできるユーザー：<b>全員</b></li>
+      <li><b>デプロイ</b> を押す → 「アクセスを承認」→ 自分のアカウントを選ぶ</li>
+      <li>「このアプリはGoogleで確認されていません」と出たら <b>詳細</b> → <b>（安全ではないページ）に移動</b> → <b>許可</b><br><span class="muted">自分で作ったプログラムなので大丈夫です</span></li>
+      <li>最後に出る <b>ウェブアプリのURL</b>（<code>/exec</code> で終わる）をコピー</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <b>④ URLをClaudeに送る</b>
+    <p>コピーしたURLを、Claudeとの会話に貼り付けてください。こちらで接続を仕上げて、最初の設定用リンクをお送りします。</p>
+  </div>
+</div>
+<script>
+var code = '';
+var btn = document.getElementById('copy');
+btn.disabled = true; btn.textContent = '読み込み中…';
+fetch('gas/Code.gs', { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+  code = t; btn.disabled = false; btn.textContent = 'プログラムを全部コピーする';
+}).catch(function () { btn.textContent = '読み込めませんでした。再読み込みしてください'; });
+btn.onclick = function () {
+  if (!code) return;
+  navigator.clipboard.writeText(code).then(function () {
+    document.getElementById('msg').hidden = false; btn.textContent = 'もう一度コピーする';
+  }).catch(function () {
+    var ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, code.length);
+    var ok = document.execCommand('copy'); ta.remove();
+    if (ok) document.getElementById('msg').hidden = false; else alert('コピーできませんでした。もう一度押してください');
+  });
+};
+</script>
+</body>
+</html>
